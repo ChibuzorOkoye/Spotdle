@@ -1,22 +1,17 @@
 import logo from './logo.svg';
 import './App.css';
-
+import {Container, InputGroup, FormControl, Button, Row, Card} from "react-bootstrap"
+import SearchArtists from './Backend/search';
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <Container>
+          <h1>This App is running currently</h1>
+          <SearchArtists>
+
+          </SearchArtists>
+        </Container>
       </header>
     </div>
   );
