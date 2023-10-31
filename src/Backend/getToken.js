@@ -3,17 +3,29 @@ import { useState,useEffect } from 'react';
 import axios from 'axios';
 
 function GetAccessToken () {
- let search_url =''; 
+ 
  let token_url = 'https://accounts.spotify.com/api/token';
- //const [input, setInput] = useState("");
- const [access_token, setAccessToken] = useState("");
- const [artistID, setArtistID] = useState("");
+ //const [access_token, setAccessToken] = useState("");
+ //const [genres, setGenres] = useState("")
+ //const [artistID, setArtistID] = useState("");
+ const [refreshToken, setRefreshToken] = useState("")
  const client_id = process.env.REACT_APP_SPOTIFY_CLIENT_ID; // Your client id
  const client_secret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET; // Your secret
- //console.log(client_secret)
  const data = {'grant_type':'client_credentials'}
- //const auth_token = (`${client_id}: ${client_secret}`)
+ let access_token = '';
+ useEffect (() =>{
+    //API Calls
+    getAuth();
+    getGenres(access_token)
+    
+    const interval = setInterval(refreshAccessToken, 60 * 60 * 1000);
+    return () => {
+      clearInterval(interval);
+    };
+ },[refreshToken, access_token]); 
+
  const getAuth = async () =>{
+    //const accessToken = localStorage.getItem('accessToken');
     try {
         const res = await axios.post(token_url,data,{
             headers: {
@@ -26,40 +38,101 @@ function GetAccessToken () {
                 password: client_secret
             }
         });
-        //console.log(res.data.access_token)
-        return res.data.access_token
+        console.log(res.data.access_token)
+        //console.log(accessToken)
         
-        //const data = response.data
+         access_token = res.data.access_token
+        setRefreshToken(res.data.refresh_token)
+        getGenres(access_token)
+        //localStorage.setItem('accessToken', res.data.access_token);
+        localStorage.setItem('refreshToken', res.data.refresh_token);
+        
+        console.log(access_token)
     } catch (error) {
         console.log(error.response);
     }
  } 
 
-
- const getsearch = async () =>{
+ const refreshAccessToken = async (refresh_token) => {
+    const refreshToken = localStorage.getItem('refreshToken');
     try {
-        const res = await axios.get(search_url,{
-            headers: {
-                'Authorization' : `Bearer ${access_token}`
-            },
-
-        });
-        //console.log(res.data.access_token)
-        return res.data
-        
-        //const data = response.data
+      const res = await axios.post('https://accounts.spotify.com/api/token', {
+        grant_type: 'refresh_token',
+        refresh_token,
+      });
+      //console.log(res.data.refresh_token)
+      //setAccessToken(res.data.access_token);
+      setRefreshToken(res.data.refresh_token);
+      localStorage.setItem('refreshToken', res.data.refresh_token);
     } catch (error) {
-        console.log(error.response);
+      console.log(error);
     }
- } 
+  };
 
 
+ const getGenres = async (access_token) => {
+    if (!access_token) {
+        console.log("The access token isn't present")
+        return;
+      }
+    let limit = 10;
+    let genre_url = `https://api.spotify.com/v1/browse/categories?limit=${limit}`; 
+    console.log(genre_url)
+    try{
+        
+        const res = await axios.get(genre_url,
+            {headers : { Authorization : `Bearer ${access_token}`}}
+        );
+        //console.log(res.data.categories.items[4])
+        if(res.data.categories.items.length > 0)
+            {   
+                console.log(res.data.categories.items)
+                const genreList = res.data.categories.items.map(genre => genre.name)
+                console.log(genreList)
 
- useEffect (() =>{
-    //API Calls
-    setAccessToken(getAuth());
-    setArtistID();
- },[]);
+
+                const artistPromise = genreList.map((genreNames) => getArtists(genreNames))
+                const artists = await Promise.all(artistPromise); 
+                console.log(artists)
+                
+            } 
+            
+          
+        }
+        
+    catch (error) {
+        console.log(error.response)
+    }
+ 
+  };
+  
+  const getArtists = async (genres) => {
+    console.log(genres)
+    if (!access_token || !genres) {
+        console.log("The access token or the information on genres isn't present" )
+        return;
+      }
+    let limit = 10; 
+    let artist_url = `https://api.spotify.com/v1/search?q=genre:${genres}&type=artist`
+    
+    try{
+    const res = await axios.get(artist_url,
+      {headers : { Authorization : `Bearer ${access_token}`},
+  });
+    console.log(res.data.artists.items)
+    return res.data.artists.items;
+    }
+
+    catch (error) {
+        console.log(error.response)
+    }
+
+
+  };
+
+  
+
+ 
  //console.log(access_token)
 
     return (
