@@ -14,11 +14,11 @@ function GetAccessToken () {
  const data = {'grant_type':'client_credentials'}
  let access_token = '';
  let genreList ='';
- let artistList = '';
+ let artistList = [];
  useEffect (() =>{
     //API Calls
     getAuth();
-    getGenres(access_token)
+    genreList = getGenres(access_token)
     
     const interval = setInterval(refreshAccessToken, 60 * 60 * 1000);
     return () => {
@@ -72,7 +72,7 @@ function GetAccessToken () {
       }
     let limit = 10;
     let genre_url = `https://api.spotify.com/v1/browse/categories?limit=${limit}`; 
-    console.log(genre_url)
+    //console.log(genre_url)
     try{
         
         const res = await axios.get(genre_url,
@@ -81,14 +81,15 @@ function GetAccessToken () {
         //console.log(res.data.categories.items[4])
         if(res.data.categories.items.length > 0)
             {   
-                console.log(res.data.categories.items)
+                //console.log(res.data.categories.items)
                 genreList = res.data.categories.items.map(genre => genre.name)
-                console.log(genreList)
+                //console.log(genreList)
                 
                 const artistPromise = genreList.map((genreNames) => getArtists(genreNames))
                 artistList = await Promise.all(artistPromise);
+                let sortedArtistLists = sortArtists(artistList)
+                artistList = sortedArtistLists;
                 
-                console.log(artistList) 
 
                 
             } 
@@ -98,11 +99,38 @@ function GetAccessToken () {
     catch (error) {
         console.log(error.response)
     }
- 
+        console.log(artistList)
   };
+
+
+  function sortArtists (list)
+  {
+    let sortArtists = list.filter((artists) => artists.length > 0)
+                
+       let newArtistsLists = sortArtists.filter((artists) => artists[5].genres != "workout product")
+            //console.log(artistList) 
+            //console.log(newArtistsLists)
+            
+
+            // for (let i = 0; i< newArtistsLists.length;i++)
+            // {
+            //     for (let j = 0; j < newArtistsLists[i].length;j++)
+                        
+            //             {
+            //                 let unique_names = newArtistsLists[i][j].map((item) => item.age)
+            //                 .filter(
+            //                     (value, index, current_value) => current_value.indexOf(value) === index
+            //                 );
+                                
+            //                 console.log(unique_names)
+            //             }
+            // }
+
+            return newArtistsLists;
+  }
   
   const getArtists = async (genres) => {
-    console.log(genres)
+    //console.log(genres)
     if (!access_token || !genres) {
         console.log("The access token or the information on genres isn't present" )
         return;
@@ -114,7 +142,7 @@ function GetAccessToken () {
     const res = await axios.get(artist_url,
       {headers : { Authorization : `Bearer ${access_token}`},
   });
-    console.log(res.data.artists.items)
+    //console.log(res.data.artists.items)
     return res.data.artists.items;
     }
 
@@ -134,11 +162,10 @@ const getAlbums = async () => {
 const getTracks = async () => {
 
 }
- //console.log(access_token)
 
     return (
       <div>
-        
+        <p align = 'center'>{artistList} something should be here but it isnt</p>
       </div>
     );
   }
