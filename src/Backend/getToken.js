@@ -5,9 +5,7 @@ import axios from 'axios';
 function GetAccessToken () {
  
  const token_url = 'https://accounts.spotify.com/api/token';
- //const [access_token, setAccessToken] = useState("");
-//  const [genres, setGenres] = useState("")
-//  const [artistList, setArtistList] = useState("");
+
  const [refreshToken, setRefreshToken] = useState("")
  const client_id = process.env.REACT_APP_SPOTIFY_CLIENT_ID; // Your client id
  const client_secret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET; // Your secret
@@ -165,7 +163,7 @@ const getTracks = async () => {
 
     return (
       <div>
-        <p align = 'center'>{artistList} something should be here but it isnt</p>
+        <p align = 'center'> something should be here but it isnt</p>
       </div>
     );
   }
